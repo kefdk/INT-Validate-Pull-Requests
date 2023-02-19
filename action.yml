@@ -1,0 +1,30 @@
+name: 'Check TRIMIT Group Rulesets'
+description: 'Check various rules on pull requests based on TRIMIT Groups Git Flow methodology.'
+inputs:
+  develop-branch-name:
+    description: 'Name of your develop branch'
+    required: true
+    default: 'develop'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        if ! [[ "$(echo ${GITHUB_HEAD_REF} | cut -d "/" -f1)" =~ (feature|hotfix|align) ]]; then
+          echo "The name of your branch does not start with one of the following: feature/, hotfix/ or align/."
+          exit 1
+        elif [[ "$(echo ${GITHUB_HEAD_REF} | cut -d "/" -f1)" == "feature" && ! "$(echo ${GITHUB_BASE_REF})" =~ (${{ inputs.develop-branch-name }}) ]]; then
+          echo "Your branch is a feature, but your base branch is not ${{ inputs.develop-branch-name }}."
+          exit 1
+        elif [[ "$(echo ${GITHUB_HEAD_REF} | cut -d "/" -f1)" == "hotfix" && ! "$(echo ${GITHUB_BASE_REF})" =~ (master|main) ]]; then
+          echo "Your branch is a hotfix, but your base branch is not main or master. It's not possible to hotfix other branches."
+          exit 1
+        elif [[ "$(echo ${GITHUB_HEAD_REF} | cut -d "/" -f1)" == "align" && ! "$(echo ${GITHUB_BASE_REF})" =~ (${{ inputs.develop-branch-name }}) ]]; then
+          echo "Your branch is a align, but your base branch is not ${{ inputs.develop-branch-name }}."
+          exit 1
+        else
+          echo "Your branch name follows our naming convention."
+        fi 
+      shell: bash
+branding:
+  icon: 'git-branch'  
+  color: 'purple'
